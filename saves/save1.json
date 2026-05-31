@@ -1,0 +1,54 @@
+{
+    "ball_served": true,
+    "brick_states": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+    ],
+    "current_level": 21,
+    "game_time": 87.6100082397461,
+    "high_score": 0,
+    "main_ball": {
+        "position": {
+            "x": 690.0,
+            "y": 231.0
+        },
+        "velocity": {
+            "x": -4.0,
+            "y": 4.0
+        }
+    },
+    "multi_balls": [],
+    "paddle_x": 376.0,
+    "player_life": 2,
+    "powerup": {
+        "paddle_longer": 0.0,
+        "slow_ball": 0.0
+    },
+    "score": 260,
+    "timestamp": "2026-05-31 19:57:13",
+    "unlocked_level": 1
+}
