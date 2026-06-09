@@ -6,13 +6,16 @@
 LevelScoreState::LevelScoreState(Game* game) : IState(game), previewLevel(1) {}
 
 void LevelScoreState::OnEnter() {
-    previewLevel = game->GetCurrentLevel();
+    previewLevel = game->GetCurrentLevel();   // 可选：保留当前进度
+    if (previewLevel < 1) previewLevel = 1;
+    if (previewLevel > LevelManager::MAX_LEVEL) previewLevel = LevelManager::MAX_LEVEL;
 }
 
 void LevelScoreState::Update(float) {
-    int unlocked = game->GetUnlockedLevel();
+    int total = LevelManager::MAX_LEVEL;
     if (IsKeyPressed(KEY_A) && previewLevel > 1) previewLevel--;
-    if (IsKeyPressed(KEY_D) && previewLevel < unlocked) previewLevel++;
+    if (IsKeyPressed(KEY_D) && previewLevel < total) previewLevel++;
+
     if (IsKeyPressed(KEY_ENTER)) {
         game->GotoLevel(previewLevel);
         game->ResetGame();
@@ -28,8 +31,9 @@ void LevelScoreState::Draw() {
     int h = game->GetScreenHeight();
     DrawRectangle(0, 0, w, h, Color{0,0,80,255});
     DrawText("LEVEL SELECT", w/2 - 150, 40, 50, YELLOW);
-    DrawText(TextFormat("SELECTED: %d / %d", previewLevel, game->GetUnlockedLevel()), w/2 - 150, 110, 30, WHITE);
+    DrawText(TextFormat("SELECTED: %d / %d", previewLevel, LevelManager::MAX_LEVEL), w/2 - 150, 110, 30, WHITE);
 
+    // 简单预览砖块布局
     auto layout = game->GetLevelManager()->GetLayout(previewLevel);
     int rows = (int)layout.size();
     int cols = (rows > 0) ? (int)layout[0].size() : 0;
@@ -38,17 +42,11 @@ void LevelScoreState::Draw() {
     float startY = 200;
     for (int r = 0; r < rows; ++r) {
         for (int c = 0; c < cols; ++c) {
-            if (layout[r][c] == 1) {
+            if (layout[r][c] == 1)
                 DrawRectangle(startX + c*cellW, startY + r*cellH, cellW-1, cellH-1, RED);
-            } else {
+            else
                 DrawRectangle(startX + c*cellW, startY + r*cellH, cellW-1, cellH-1, DARKGRAY);
-            }
         }
-    }
-    DrawText("LEVEL HIGH SCORES:", w/2 - 150, startY + rows*cellH + 30, 24, LIGHTGRAY);
-    for (int i = 1; i <= game->GetUnlockedLevel(); ++i) {
-        int score = game->GetLevelHighScore(i);
-        DrawText(TextFormat("Level %d: %d", i, score), w/2 - 100, startY + rows*cellH + 60 + i*25, 20, (i == previewLevel) ? YELLOW : WHITE);
     }
     DrawText("A / D : CHANGE LEVEL", w/2 - 150, h - 80, 24, LIGHTGRAY);
     DrawText("ENTER : START | Q : BACK", w/2 - 150, h - 40, 24, LIGHTGRAY);

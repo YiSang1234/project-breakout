@@ -1,4 +1,3 @@
-// LevelManager.h
 #pragma once
 #include "Brick.h"
 #include <vector>
@@ -6,7 +5,7 @@
 
 class LevelManager {
 public:
-    static const int MAX_LEVEL = 5;   // 移到 public
+    static const int MAX_LEVEL = 5;   // 只定义一次
 
     LevelManager();
     bool LoadLevel(int level);
@@ -21,9 +20,7 @@ public:
     float GetBrickSpacing() const { return brickSpace; }
     float GetBallSpeedX() const { return ballSpeedX; }
     float GetBallSpeedY() const { return ballSpeedY; }
-
-    // 新增：获取指定关卡的布局（用于预览）
-    std::vector<std::vector<int>> GetLayout(int level) const;
+    std::vector<std::vector<int>> GetLayout(int level) const;   // 用于预览
 
 private:
     int brickRows, brickCols;

@@ -10,11 +10,14 @@ private:
     float brickW, brickH, brickSpace;
     Color selectedColor;
     Vector2 mousePos;
+    int maxUnlockedLevel;
 
 public:
     EditorManager();
+    void SetMaxUnlockedLevel(int level) { maxUnlockedLevel = level; }
     void LoadLevelForEdit(int level);
     void SaveCurrentLevel();
+    void SwitchToLevel(int delta);
     void Update(float dt);
     void Draw() const;
     int GetEditingLevel() const { return editingLevel; }

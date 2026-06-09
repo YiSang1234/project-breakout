@@ -1,3 +1,4 @@
+// Game.cpp
 #include "Game.h"
 #include "GameCore.h"
 #include "LevelManager.h"
@@ -17,13 +18,15 @@
 #include "DebugState.h"
 #include <cstdlib>
 #include <ctime>
+#include <cstdio>
 
-// 避免 Windows.h 冲突（在包含任何 Windows 头文件前定义）
+// 跨平台删除存档文件的命令
 #ifdef _WIN32
-#define WIN32_LEAN_AND_MEAN
-#define NOGDI
-#define NOUSER
-#include <windows.h>
+    #define DELETE_SAVES_CMD "del /Q saves\\*.json 2>nul"
+    #define DELETE_HIGHSCORE_CMD "del highscore.txt 2>nul"
+#else
+    #define DELETE_SAVES_CMD "rm -f saves/*.json 2>/dev/null"
+    #define DELETE_HIGHSCORE_CMD "rm -f highscore.txt 2>/dev/null"
 #endif
 
 Game::Game() : screenWidth(800), screenHeight(600), currentBgIndex(0), twoPlayerMode(false) {
@@ -40,7 +43,6 @@ Game::Game() : screenWidth(800), screenHeight(600), currentBgIndex(0), twoPlayer
     system("mkdir -p levels");
 #endif
 
-    // 加载资源（容错）
     bgTextures[0] = LoadTexture("assets/bg1.png");
     bgTextures[1] = LoadTexture("assets/bg2.png");
     bgTextures[2] = LoadTexture("assets/bg3.png");
@@ -103,7 +105,7 @@ void Game::Run() {
     }
 }
 
-// 委托方法
+// 核心逻辑委托
 void Game::UpdateGamePlay(float dt) { core->UpdateGamePlay(dt); }
 void Game::DrawGamePlay() { core->DrawGamePlay(); }
 bool Game::IsGameOver() { return core->IsGameOver(); }
@@ -129,6 +131,11 @@ int Game::GetHighScore() const { return core->GetHighScore(); }
 int Game::GetCurrentLevel() const { return core->GetCurrentLevel(); }
 int Game::GetUnlockedLevel() const { return core->GetUnlockedLevel(); }
 
+void Game::SetTwoPlayerMode(bool enable) {
+    twoPlayerMode = enable;
+    core->SetTwoPlayerMode(enable);
+}
+
 void Game::OpenArchiveSaveMode() {
     stateMachine->SwitchTo(GameStateType::ARCHIVE_SELECT);
     if (auto* s = dynamic_cast<ArchiveSelectState*>(stateMachine->GetCurrentState()))
@@ -148,36 +155,66 @@ void Game::StartEditMode() {
     stateMachine->SwitchTo(GameStateType::EDITOR);
 }
 
-void Game::SetTwoPlayerMode(bool enable) {
-    twoPlayerMode = enable;
-    core->SetTwoPlayerMode(enable);
+// 重置所有进度（删档）
+void Game::ResetAllProgress() {
+    // 删除所有存档文件
+    system(DELETE_SAVES_CMD);
+    // 删除高分文件
+    system(DELETE_HIGHSCORE_CMD);
+
+    // 重置核心数据
+    core->SetUnlockedLevel(1);
+    core->SetScore(0);
+    core->SetCurrentLevel(1);
+    // 重置高分内存值（需要 GameCore 提供 SetHighScore 方法）
+    core->SetHighScore(0);
+
+    // 重置解锁文件
+    FILE* f = fopen("unlocked.txt", "w");
+    if (f) {
+        fprintf(f, "%d", 1);
+        fclose(f);
+    }
+
+    // 重置游戏状态并返回主菜单
+    core->ResetGame();
+    stateMachine->SwitchTo(GameStateType::MENU);
 }
 
-// 异步加载小球
+// 异步加载（小球变色）
 void Game::StartBallAsyncLoad() { asyncLoadMgr->StartBallAsyncLoad(); }
 bool Game::IsBallAsyncComplete() const { return asyncLoadMgr->IsBallComplete(); }
 void Game::ResetBallAsync() { asyncLoadMgr->ResetBall(); }
 void Game::ApplyRandomBallColors() {
-    auto randColor = []() { return Color{(unsigned char)(rand()%256), (unsigned char)(rand()%256), (unsigned char)(rand()%256), 255}; };
+    auto randColor = []() -> Color {
+        return Color{(unsigned char)(rand()%256), (unsigned char)(rand()%256), (unsigned char)(rand()%256), 255};
+    };
     core->GetBall().SetColor(randColor());
-    for (auto& mb : core->GetMultiBalls()) mb.SetColor(randColor());
+    for (auto& mb : core->GetMultiBalls())
+        mb.SetColor(randColor());
 }
 
-// 异步加载砖块
+// 异步加载（砖块变色）
 void Game::StartBrickAsyncLoad() { asyncLoadMgr->StartBrickAsyncLoad(); }
 bool Game::IsBrickAsyncComplete() const { return asyncLoadMgr->IsBrickComplete(); }
 void Game::ResetBrickAsync() { asyncLoadMgr->ResetBrick(); }
 void Game::ApplyRandomBrickColors() {
-    auto randColor = []() { return Color{(unsigned char)(rand()%256), (unsigned char)(rand()%256), (unsigned char)(rand()%256), 255}; };
-    for (auto& brick : core->GetBricks()) if (brick.IsActive()) brick.SetColor(randColor());
+    auto randColor = []() -> Color {
+        return Color{(unsigned char)(rand()%256), (unsigned char)(rand()%256), (unsigned char)(rand()%256), 255};
+    };
+    for (auto& brick : core->GetBricks())
+        if (brick.IsActive()) brick.SetColor(randColor());
 }
 
 bool Game::IsAnyAsyncLoading() const {
     return asyncLoadMgr->IsBallLoading() || asyncLoadMgr->IsBrickLoading();
 }
 
-void Game::UpdateAsyncLoad() { asyncLoadMgr->Update(); }
+void Game::UpdateAsyncLoad() {
+    asyncLoadMgr->Update();
+}
 
 int Game::GetLevelHighScore(int level) const {
-    return 0; // 暂未实现
+    // TODO: 从存档读取每关最高分
+    return 0;
 }

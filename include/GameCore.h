@@ -12,21 +12,17 @@ class Game;
 class GameCore {
 private:
     Ball ball;
-    Paddle paddle1;
-    Paddle paddle2;
+    Paddle paddle1, paddle2;
     std::vector<Brick> bricks;
     std::vector<Ball> multiBalls;
     int score, highScore, playerLife;
     int currentLevel, unlockedLevel;
     float gameTime;
-    bool ballServed;
-    bool showLevelText;
+    bool ballServed, showLevelText, twoPlayerMode;
     float levelStartTimer;
     float ballSpeedX, ballSpeedY, paddleSpeed;
-    int startLives, maxGameTime;
-    int defaultBrickHitPoints;
+    int startLives, maxGameTime, defaultBrickHitPoints;
     int screenWidth, screenHeight;
-    bool twoPlayerMode;
     PowerUpManager* powerUpMgr;
     ParticleManager* particleMgr;
     LevelManager* levelMgr;
@@ -37,7 +33,6 @@ private:
 public:
     GameCore(PowerUpManager* pum, ParticleManager* pm, LevelManager* lm, Game* g, bool twoPlayer = false);
     void SetScreenDimensions(int w, int h) { screenWidth = w; screenHeight = h; }
-
     void UpdateGamePlay(float dt);
     void DrawGamePlay() const;
     void ResetGame();
@@ -45,12 +40,11 @@ public:
     void GotoLevel(int level);
     bool IsGameOver() const;
     bool IsGameWin() const;
-
     void SetPaddleLonger(bool enable);
     void SetSlowBall(bool enable);
     void SpawnMultiBalls();
 
-    // 访问器
+    // Getters / Setters
     Ball& GetBall() { return ball; }
     const Ball& GetBall() const { return ball; }
     Paddle& GetPaddle1() { return paddle1; }
@@ -70,6 +64,7 @@ public:
     bool IsBallServed() const { return ballServed; }
     void SetBallServed(bool s) { ballServed = s; }
     void SetScore(int s) { score = s; }
+    void SetHighScore(int hs) { highScore = hs; }          // 新增
     void AddScore(int add) { score += add; }
     void SetPlayerLife(int life) { playerLife = life; }
     void SetCurrentLevel(int lvl) { currentLevel = lvl; }
@@ -89,9 +84,8 @@ public:
     int GetStartLives() const { return startLives; }
     void SetStartLives(int lives) { startLives = lives; }
     void SetMaxGameTime(int t) { maxGameTime = t; }
-
-    void SetTwoPlayerMode(bool enable) { twoPlayerMode = enable; }
     bool IsTwoPlayerMode() const { return twoPlayerMode; }
+    void SetTwoPlayerMode(bool enable) { twoPlayerMode = enable; }
 
     void PlayHitSound() const;
 };

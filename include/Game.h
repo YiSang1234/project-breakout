@@ -30,14 +30,16 @@ private:
     std::unique_ptr<AsyncLoadManager> asyncLoadMgr;
     std::unique_ptr<StateMachine> stateMachine;
 
-    bool twoPlayerMode;   // 双人模式
+    float menuBallSpeed, menuPaddleSpeed;
+    int menuLives, menuBrickRows;
+    bool twoPlayerMode;
 
 public:
     Game();
     ~Game();
     void Run();
 
-    // 核心委托
+    // 核心逻辑委托
     void UpdateGamePlay(float dt);
     void DrawGamePlay();
     bool IsGameOver();
@@ -52,28 +54,31 @@ public:
     void SetSlowBall(bool enable);
     void SpawnMultiBalls();
 
+    // 双人模式
+    void SetTwoPlayerMode(bool enable);
+    bool IsTwoPlayerMode() const { return twoPlayerMode; }
+
     // 存档与编辑器
     void OpenArchiveSaveMode();
     void OpenArchiveLoadMode();
     void StartEditMode();
 
-    // 异步加载（小球变色、砖块变色）
+    // 异步加载
     void StartBallAsyncLoad();
-    bool IsBallAsyncComplete() const;
-    void ResetBallAsync();
-    void ApplyRandomBallColors();
     void StartBrickAsyncLoad();
-    bool IsBrickAsyncComplete() const;
-    void ResetBrickAsync();
-    void ApplyRandomBrickColors();
-    bool IsAnyAsyncLoading() const;
     void UpdateAsyncLoad();
+    bool IsAnyAsyncLoading() const;
+    bool IsBallAsyncComplete() const;
+    bool IsBrickAsyncComplete() const;
+    void ResetBallAsync();
+    void ResetBrickAsync();
+    void ApplyRandomBallColors();
+    void ApplyRandomBrickColors();
 
-    // 双人模式
-    void SetTwoPlayerMode(bool enable);
-    bool IsTwoPlayerMode() const { return twoPlayerMode; }
+    // 删档重置
+    void ResetAllProgress();
 
-    // 访问器
+    // Getter
     int GetScreenWidth() const { return screenWidth; }
     int GetScreenHeight() const { return screenHeight; }
     int GetScore() const;
@@ -90,7 +95,6 @@ public:
     SaveManager* GetSaveManager() { return saveMgr.get(); }
     EditorManager* GetEditorManager() { return editorMgr.get(); }
 
-    // 音效（避免与 Windows API 冲突）
     void PlayHitSound() { PlaySound(hitSound); }
     void PlayPowerUpSound() { PlaySound(powerUpSound); }
     void PlayGameOverSound() { PlaySound(gameOverSound); }
